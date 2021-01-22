@@ -53,7 +53,6 @@ def sendgrid_email(sobject: EmailSerializer):
         "personalizations": [
             {
                 "to": to_email,
-                "cc": cc_email,
                 "subject": sobject.validated_data['subject'],
             }
         ],
@@ -64,6 +63,16 @@ def sendgrid_email(sobject: EmailSerializer):
             }
         ]
     }
+    print(len(cc_email))
+    if len(cc_email) != 0:
+        data["personalizations"] = [
+            {
+                "to": to_email,
+                "cc": cc_email,
+                "subject": sobject.validated_data['subject'],
+            }
+        ]
+
     try:
         sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
         sg_response = sg.client.mail.send.post(request_body=data)
@@ -82,6 +91,7 @@ def email_functions(request, format=None):
     elif request.method == 'POST':
         email_serializer = EmailSerializer(data=request.data)
         if email_serializer.is_valid():
+            print(email_serializer)
             sg_response = sendgrid_email(email_serializer)
             if sg_response == 202:
                 email_serializer.save()
